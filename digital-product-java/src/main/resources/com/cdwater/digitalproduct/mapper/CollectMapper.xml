@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cdwater.digitalproduct.mapper.CollectMapper">
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into collect
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId!=null">user_id,</if>
+            <if test="productId!=null">product_id,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId!=null">#{userId},</if>
+            <if test="productId!=null">#{productId},</if>
+        </trim>
+    </insert>
+
+    <select id="selectByUserIdAndProductId" resultType="com.cdwater.digitalproduct.entity.Collect">
+        select id, user_id, product_id
+        from collect
+        where user_id = #{userId}
+          and product_id = #{productId}
+    </select>
+
+    <select id="selectByUserId" resultType="com.cdwater.digitalproduct.model.vo.CollectProductVO">
+        select c.id,
+               c.product_id,
+               p.name        as productName,
+               p.used      as productGender,
+               p.img         as productImg,
+               p.price       as productPrice,
+               p.store       as productStore,
+               p.sale_status as productSaleStatus
+        from collect c
+                 left join product p on c.product_id = p.id
+        where c.user_id = #{userId}
+    </select>
+
+    <!--删除操作__________________________________________________________________________________________________________-->
+    <delete id="deleteByUserIdAndProductId">
+        delete
+        from collect
+        where user_id = #{userId}
+          and product_id = #{productId}
+    </delete>
+
+    <delete id="deleteByUserId">
+        delete
+        from collect
+        where user_id = #{userId}
+    </delete>
+
+    <delete id="deleteByUserIds">
+        delete
+        from collect
+        where user_id in
+        <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteByProductId">
+        delete
+        from collect
+        where product_id = #{productId}
+    </delete>
+
+    <delete id="deleteByProductIds">
+        delete
+        from collect
+        where product_id in
+        <foreach collection="productIds" item="productId" open="(" separator="," close=")">
+            #{productId}
+        </foreach>
+    </delete>
+    <!--删除操作__________________________________________________________________________________________________________-->
+</mapper>
