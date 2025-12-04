@@ -117,7 +117,11 @@ onMounted(() => {
 
 ### 注：替换application.yml文件中的密码相关信息
 
+**获取带数据版本的数据库：**
+去sql文件夹找digital_product.sql文件，自己先创建数据库digital_product，然后在这个数据库上运行该SQL脚本
 
+**获取不带数据版本的数据库：**
+去sql文件夹找create_table.sql和create_admin.sql文件，先执行create_table.sql脚本，再执行create_admin.sql脚本
 
 **初始管理员密码为Aa123456(md5加密)**
 
