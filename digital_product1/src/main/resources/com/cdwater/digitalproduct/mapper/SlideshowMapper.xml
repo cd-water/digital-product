@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cdwater.digitalproduct.mapper.SlideshowMapper">
+
+    <insert id="insert">
+        insert into slideshow
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="productId != null">product_id,</if>
+            <if test="shopId != null">shop_id,</if>
+            <if test="img != null">img,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="productId != null">#{productId},</if>
+            <if test="shopId != null">#{shopId},</if>
+            <if test="img != null">#{img},</if>
+        </trim>
+    </insert>
+
+    <update id="updateById">
+        update slideshow
+        <set>
+            <if test="productId != null">product_id = #{productId},</if>
+            <if test="shopId != null">shop_id = #{shopId},</if>
+            <if test="img != null">img = #{img},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <select id="selectById" resultType="com.cdwater.digitalproduct.model.vo.SlideshowQueryVO">
+        select id, product_id, shop_id, img
+        from slideshow
+        where id = #{id}
+    </select>
+
+    <select id="selectPage" resultType="com.cdwater.digitalproduct.model.vo.SlideshowPageVO">
+        select s.id, s.img, p.name as productName,ps.nickname as shopName
+        from slideshow s
+        left join product p on s.product_id = p.id
+        left join digital_shop ps on s.shop_id = ps.id
+        <where>
+            <if test="productName!=null and productName!=''">and p.name like concat('%',#{productName},'%')</if>
+            <if test="shopName!=null and shopName!=''">and ps.nickname like concat('%',#{shopName},'%')</if>
+        </where>
+        order by s.id desc
+    </select>
+
+    <select id="selectList" resultType="com.cdwater.digitalproduct.entity.Slideshow">
+        select id, product_id, shop_id, img
+        from slideshow
+    </select>
+
+    <!--删除操作__________________________________________________________________________________________________________-->
+    <delete id="deleteById">
+        delete
+        from slideshow
+        where id = #{id}
+    </delete>
+
+    <delete id="deleteByIds">
+        delete from slideshow where id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </delete>
+
+    <delete id="deleteByProductId">
+        delete
+        from slideshow
+        where product_id = #{productId}
+    </delete>
+
+    <delete id="deleteByProductIds">
+        delete
+        from slideshow
+        where product_id in
+        <foreach collection="productIds" item="productId" open="(" separator="," close=")">
+            #{productId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteByShopId">
+        delete
+        from slideshow
+        where shop_id = #{shopId}
+    </delete>
+
+    <delete id="deleteByShopIds">
+        delete
+        from slideshow
+        where shop_id in
+        <foreach collection="shopIds" item="shopId" open="(" separator="," close=")">
+            #{shopId}
+        </foreach>
+    </delete>
+    <!--删除操作__________________________________________________________________________________________________________-->
+</mapper>

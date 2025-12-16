@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cdwater.digitalproduct.mapper.CartMapper">
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into cart
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="quantity != null">quantity,</if>
+            <if test="accessoryId != null">accessory_id,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="quantity != null">#{quantity},</if>
+            <if test="accessoryId != null">#{accessoryId},</if>
+        </trim>
+    </insert>
+
+    <update id="updateById">
+        update cart
+        <set>
+            <if test="quantity != null">quantity = #{quantity},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <select id="selectByUserIdAndAccessoryId" resultType="com.cdwater.digitalproduct.entity.Cart">
+        select id, user_id, quantity, accessory_id
+        from cart
+        where user_id = #{userId}
+          and accessory_id = #{accessoryId}
+    </select>
+
+    <select id="selectByUserId" resultType="com.cdwater.digitalproduct.model.vo.CartAccessoryVO">
+        select c.id,
+               c.user_id,
+               c.quantity,
+               c.accessory_id,
+               g.shop_id,
+               g.name        as accessoryName,
+               g.img         as accessoryImg,
+               g.price       as accessoryPrice,
+               g.store       as accessoryStore,
+               g.sale_status as accessorySaleStatus
+        from cart c
+                 left join accessory g on c.accessory_id = g.id
+        where c.user_id = #{userId}
+        order by c.id desc
+    </select>
+
+    <!--删除操作__________________________________________________________________________________________________________-->
+    <delete id="deleteByUserIdAndAccessoryId">
+        delete
+        from cart
+        where user_id = #{userId}
+          and accessory_id = #{accessoryId}
+    </delete>
+
+    <delete id="deleteByUserId">
+        delete
+        from cart
+        where user_id = #{userId}
+    </delete>
+
+    <delete id="deleteByUserIds">
+        delete
+        from cart
+        where user_id in
+        <foreach collection="userIds" item="userId" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteByAccessoryId">
+        delete
+        from cart
+        where accessory_id = #{accessoryId}
+    </delete>
+
+    <delete id="deleteByAccessoryIds">
+        delete
+        from cart
+        where accessory_id in
+        <foreach collection="accessoryIds" item="accessoryId" open="(" separator="," close=")">
+            #{accessoryId}
+        </foreach>
+    </delete>
+    <!--删除操作__________________________________________________________________________________________________________-->
+</mapper>

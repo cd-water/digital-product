@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.cdwater.digitalproduct.mapper.ProductMapper">
+    <insert id="insert">
+        insert into product
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="shopId != null">shop_id,</if>
+            <if test="typeId != null">type_id,</if>
+            <if test="name != null">name,</if>
+            <if test="used != null">used,</if>
+            <if test="img != null">img,</if>
+            <if test="price != null">price,</if>
+            <if test="store != null">store,</if>
+            <if test="introduce != null">introduce,</if>
+            <if test="content != null">content,</if>
+            <if test="saleStatus != null">sale_status,</if>
+            <if test="recommend != null">recommend,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="shopId != null">#{shopId},</if>
+            <if test="typeId != null">#{typeId},</if>
+            <if test="name != null">#{name},</if>
+            <if test="used != null">#{used},</if>
+            <if test="img != null">#{img},</if>
+            <if test="price != null">#{price},</if>
+            <if test="store != null">#{store},</if>
+            <if test="introduce != null">#{introduce},</if>
+            <if test="content != null">#{content},</if>
+            <if test="saleStatus != null">#{saleStatus},</if>
+            <if test="recommend != null">#{recommend},</if>
+        </trim>
+    </insert>
+
+    <update id="updateById">
+        update product
+        <set>
+            <if test="typeId!=null">type_id = #{typeId},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="used != null">used = #{used},</if>
+            <if test="img != null">img = #{img},</if>
+            <if test="price != null">price = #{price},</if>
+            <if test="store != null">store = #{store},</if>
+            <if test="introduce != null">introduce = #{introduce},</if>
+            <if test="content != null">content = #{content},</if>
+            <if test="saleStatus != null">sale_status = #{saleStatus},</if>
+            <if test="recommend != null">recommend = #{recommend},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="subStock">
+        update product
+        set store = store - 1
+        where id = #{id}
+    </update>
+
+    <update id="addStock">
+        update product
+        set store = store + 1
+        where id = #{id}
+    </update>
+
+    <select id="selectPage" resultType="com.cdwater.digitalproduct.model.vo.ProductPageVO">
+        select p.id, p.name, p.used, p.img, p.price, p.store, p.introduce, p.content,
+        p.sale_status, p.recommend,pt.name as typeName,ps.nickname as shopName
+        from product p
+        left join product_type pt on p.type_id = pt.id
+        left join digital_shop ps on p.shop_id = ps.id
+        <where>
+            <if test="name!=null and name!=''">and p.name like concat('%',#{name},'%')</if>
+            <if test="shopName!=null and shopName!=''">and ps.nickname like concat('%',#{shopName},'%')</if>
+            <if test="typeId!=null">and p.type_id = #{typeId}</if>
+            <if test="saleStatus!=null">and p.sale_status = #{saleStatus}</if>
+            <if test="recommend!=null">and p.recommend = #{recommend}</if>
+            <if test="shopId!=null">and p.shop_id = #{shopId}</if>
+        </where>
+        order by p.id desc
+    </select>
+
+    <resultMap id="productGroupResultMap" type="com.cdwater.digitalproduct.model.vo.ProductGroupVO">
+        <id property="shopId" column="shopId"/>
+        <result property="shopName" column="shopName"/>
+        <collection property="productList" ofType="com.cdwater.digitalproduct.model.vo.ProductGroupVO$ProductItem">
+            <id property="productId" column="productId"/>
+            <result property="productName" column="productName"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectProductGroup" resultMap="productGroupResultMap">
+        select ps.id as shopId, ps.nickname as shopName, p.id as productId, p.name as productName
+        from digital_shop ps
+                 left join product p on ps.id = p.shop_id
+        where ps.is_deleted = 0
+          and ps.audit_status = 2
+    </select>
+
+    <select id="countBySaleStatus" resultType="java.lang.Integer">
+        select count(*)
+        from product
+        where sale_status = #{saleStatus}
+    </select>
+
+    <select id="getTypeCountMap" resultType="java.util.Map">
+        select pt.name as name, count(*) as value
+        from product p
+                 left join product_type pt on p.type_id = pt.id
+        group by p.type_id
+    </select>
+
+    <select id="selectById" resultType="com.cdwater.digitalproduct.model.vo.ProductQueryVO">
+        select id,
+               type_id,
+               name,
+               used,
+               img,
+               price,
+               store,
+               introduce,
+               content,
+               sale_status,
+               recommend
+        from product
+        where id = #{id}
+    </select>
+
+    <select id="selectRecommend12" resultType="com.cdwater.digitalproduct.model.vo.ProductShowVO">
+        select id,
+               name,
+               used,
+               img,
+               price,
+               store,
+               sale_status
+        from product
+        where recommend = 1
+          and sale_status = 1
+        limit 12
+    </select>
+
+    <select id="selectPagePublic" resultType="com.cdwater.digitalproduct.model.vo.ProductShowVO">
+        select id, name, used, img, price, store, sale_status from product
+        <where>
+            <if test="name!=null and name!=''">and name like concat('%',#{name},'%')</if>
+            <if test="typeId!=null">and type_id = #{typeId}</if>
+            <if test="onlyInStock != null and onlyInStock == true">and store > 0</if>
+            <if test="priceMin!=null and priceMax!=null">and price between #{priceMin} and #{priceMax}</if>
+            <if test="shopId!=null">and shop_id = #{shopId}</if>
+        </where>
+        order by recommend desc, id desc
+    </select>
+
+    <select id="selectDetail" resultType="com.cdwater.digitalproduct.model.vo.ProductDetailVO">
+        select p.id,
+               p.shop_id,
+               p.name,
+               p.used,
+               p.img,
+               p.price,
+               p.store,
+               p.introduce,
+               p.content,
+               p.sale_status,
+               pt.name     as typeName,
+               ps.nickname as shopName,
+               ps.avatar   as shopAvatar
+        from product p
+                 left join digital_shop ps on p.shop_id = ps.id
+                 left join product_type pt on p.type_id = pt.id
+        where p.id = #{id}
+    </select>
+
+    <select id="selectIdsByShopId" resultType="java.lang.Integer">
+        select id
+        from product
+        where shop_id = #{shopId}
+    </select>
+
+    <select id="selectIdsByShopIds" resultType="java.lang.Integer">
+        select id
+        from product
+        where shop_id in
+        <foreach collection="shopIds" item="shopId" open="(" separator="," close=")">
+            #{shopId}
+        </foreach>
+    </select>
+
+    <!--删除操作__________________________________________________________________________________________________________-->
+    <delete id="deleteById">
+        delete
+        from product
+        where id = #{id}
+    </delete>
+
+    <delete id="deleteByIds">
+        delete from product where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <delete id="deleteByShopId">
+        delete
+        from product
+        where shop_id = #{shopId}
+    </delete>
+
+    <delete id="deleteByShopIds">
+        delete from product where shop_id in
+        <foreach collection="shopIds" item="shopId" open="(" separator="," close=")">
+            #{shopId}
+        </foreach>
+    </delete>
+    <!--删除操作__________________________________________________________________________________________________________-->
+</mapper>
